@@ -1,19 +1,36 @@
 #region
 
 using System.Collections;
+using OOP_L2.FilesSystem;
 
 #endregion
 
 namespace OOP_L2.Utilities
 {
-    public class TreeNode : IEnumerable<TreeNode>
+    public class TreeNode
     {
-        private readonly Dictionary<string, TreeNode> _children =
-            new Dictionary<string, TreeNode>();
+        private readonly Dictionary<string, TreeNode> _children = new Dictionary<string, TreeNode>();
 
-        private readonly string id;
+        private TreeNode _searchResult;
 
-        private TreeNode? Parent { get; set; }
+        private TreeNode Parent { get; set; }
+
+        public TreeNode SearchResult
+        {
+            get
+            {
+                TreeNode searchResult = _searchResult;
+                _searchResult = null;
+
+                return searchResult;
+            }
+            set
+            {
+                _searchResult = value;
+            }
+        }
+
+        public readonly string id;
 
 
         protected TreeNode(string id)
@@ -30,6 +47,11 @@ namespace OOP_L2.Utilities
 
         public void Add(TreeNode item)
         {
+            if (_children.ContainsKey(item.id))
+            {
+                throw new ArgumentException(paramName: nameof(TreeNode), message: "Same file or directory already exists. ");
+            }
+
             item.Parent?._children.Remove(item.id);
 
             item.Parent = this;
@@ -37,21 +59,50 @@ namespace OOP_L2.Utilities
         }
 
 
-        public IEnumerator<TreeNode> GetEnumerator()
+        public void Find(string id)
         {
-            return _children.Values.GetEnumerator();
+            foreach (string childId in _children.Keys)
+            {
+                if (childId == id)
+                {
+                    SetSearchResult(_children[id]);
+                    return;
+                }
+
+                _children[childId].Find(id);
+            }
         }
 
 
-        IEnumerator IEnumerable.GetEnumerator()
+        private void SetSearchResult(TreeNode result)
         {
-            return GetEnumerator();
+            if (Parent != null)
+            {
+                Parent.SearchResult = result;
+                Parent.SetSearchResult(result);
+            }
         }
 
 
-        public int Count
+        public void OutputTree(string indent, bool last)
         {
-            get { return _children.Count; }
+            Console.Write(indent);
+            if (last)
+            {
+                Console.Write("\\-");
+                indent += "  ";
+            }
+            else
+            {
+                Console.Write("|-");
+                indent += "| ";
+            }
+            Console.WriteLine(id);
+
+            foreach (string id in _children.Keys)
+            {
+                _children[id].OutputTree(indent, id == _children.Keys.Last());
+            }
         }
     }
 }
