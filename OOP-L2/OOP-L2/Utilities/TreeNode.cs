@@ -1,108 +1,88 @@
 #region
 
-using System.Collections;
-using OOP_L2.FilesSystem;
-
 #endregion
 
-namespace OOP_L2.Utilities
+namespace OOP_L2.Utilities;
+
+public class TreeNode
 {
-    public class TreeNode
+    protected readonly Dictionary<string, TreeNode> _children = new Dictionary<string, TreeNode>();
+
+    public readonly string id;
+
+
+    protected TreeNode(string id)
     {
-        private readonly Dictionary<string, TreeNode> _children = new Dictionary<string, TreeNode>();
+        this.id = id;
+    }
 
-        private TreeNode _searchResult;
+    public TreeNode Parent { get; set; }
 
-        private TreeNode Parent { get; set; }
 
-        public TreeNode SearchResult
+    public TreeNode GetChild(string id)
+    {
+        return _children.ContainsKey(id) ? _children[id] : null;
+    }
+
+
+    public void Add(TreeNode item)
+    {
+        if (_children.ContainsKey(item.id))
         {
-            get
-            {
-                TreeNode searchResult = _searchResult;
-                _searchResult = null;
-
-                return searchResult;
-            }
-            set
-            {
-                _searchResult = value;
-            }
+            throw new ArgumentException(paramName: nameof(TreeNode), message: "Same file or directory already exists. ");
         }
 
-        public readonly string id;
+        item.Parent?._children.Remove(item.id);
+
+        item.Parent = this;
+        _children.Add(item.id, item);
+    }
 
 
-        protected TreeNode(string id)
+    public void Remove(string id)
+    {
+        if (!_children.ContainsKey(id))
         {
-            this.id = id;
+            throw new ArgumentException(paramName: nameof(TreeNode), message: "There is no such file or directory.");
         }
 
+        _children.Remove(id);
+    }
 
-        public TreeNode GetChild(string id)
+
+    public void RecursiveDescent(Action<TreeNode> callback)
+    {
+        // Console.WriteLine($"Searching for {id} in {this.id}");
+        foreach (var childId in _children.Keys)
         {
-            return _children[id];
-        }
-
-
-        public void Add(TreeNode item)
-        {
-            if (_children.ContainsKey(item.id))
+            // Console.WriteLine($"\t Searching child {childId}");
+            callback(_children[childId]);
+            if (_children.ContainsKey(childId))
             {
-                throw new ArgumentException(paramName: nameof(TreeNode), message: "Same file or directory already exists. ");
-            }
-
-            item.Parent?._children.Remove(item.id);
-
-            item.Parent = this;
-            _children.Add(item.id, item);
-        }
-
-
-        public void Find(string id)
-        {
-            foreach (string childId in _children.Keys)
-            {
-                if (childId == id)
-                {
-                    SetSearchResult(_children[id]);
-                    return;
-                }
-
-                _children[childId].Find(id);
+                _children[childId].RecursiveDescent(callback);
             }
         }
+    }
 
 
-        private void SetSearchResult(TreeNode result)
+    public void OutputTree(string indent, bool last)
+    {
+        Console.Write(indent);
+        if (last)
         {
-            if (Parent != null)
-            {
-                Parent.SearchResult = result;
-                Parent.SetSearchResult(result);
-            }
+            Console.Write("\\-");
+            indent += "  ";
         }
-
-
-        public void OutputTree(string indent, bool last)
+        else
         {
-            Console.Write(indent);
-            if (last)
-            {
-                Console.Write("\\-");
-                indent += "  ";
-            }
-            else
-            {
-                Console.Write("|-");
-                indent += "| ";
-            }
-            Console.WriteLine(id);
+            Console.Write("|-");
+            indent += "| ";
+        }
+        Console.WriteLine(id);
 
-            foreach (string id in _children.Keys)
-            {
-                _children[id].OutputTree(indent, id == _children.Keys.Last());
-            }
+        foreach (var id in _children.Keys)
+        {
+            _children[id].OutputTree(indent, id == _children.Keys.Last());
         }
     }
 }

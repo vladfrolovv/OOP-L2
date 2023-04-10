@@ -1,53 +1,56 @@
 ﻿using OOP_L2.FilesSystem;
 
-namespace OOP_L2
+namespace OOP_L2;
+
+public class Executor
 {
-    public class Executor
+    public static void Main()
     {
-        public static void Main()
+        var fileSystem = new FileSystem(new FSDirectory("root"));
+
+        fileSystem.AddDirectory(new List<FSDirectory>
         {
-            FileSystem fileSystem = new FileSystem(new FSDirectory("root"));
+            new FSDirectory("dir1"),
+            new FSDirectory("dir1"),
+            new FSDirectory("dir2")
+        });
 
-            // dir1
-            FSDirectory dir1 = new FSDirectory("1");
+        fileSystem.AddDirectory(new List<FSDirectory>
+        {
+            new FSDirectory("dir1.1"),
+            new FSDirectory("dir1.2")
+        }, "dir1");
 
-            FSFile dir1File1 = new FSFile("1.1");
-            FSFile dir1File2 = new FSFile("1.2");
-            FSFile dir1File3 = new FSFile("1.3");
+        fileSystem.AddFile(new List<FSFile>()
+        {
+            new FSFile("file1.exe"),
+            new FSFile("file2.exe"),
+            new FSFile("file3.exe"),
+        }, "dir1.1");
 
-            dir1.Add(dir1File1);
-            dir1.Add(dir1File2);
-            dir1.Add(dir1File3);
+        fileSystem.AddDirectory(new List<FSDirectory>
+        {
+            new FSDirectory("dir1.1.2"),
+            new FSDirectory("dir1.1.2")
+        }, "dir1.1");
 
-            // dir2
-            FSDirectory dir2 = new FSDirectory("2");
 
-            FSDirectory dir2File1 = new FSDirectory("2.1");
-            FSDirectory dir2File2 = new FSDirectory("2.2");
-            FSDirectory dir2File3 = new FSDirectory("2.3");
+        Console.WriteLine("\n\n FileSystem we created: \n");
+        fileSystem.OutputAll();
 
-            dir2.Add(dir2File1);
-            dir2.Add(dir2File2);
-            dir2.Add(dir2File3);
+        FSFile getFileByPathTest = fileSystem.GetFileByPath("dir1/dir1.1/file2.exe");
+        FSDirectory getDirectoryByNameInDirectory = fileSystem.GetFileOrDirectoryInDirectory("dir1.1.2", "dir1.1") as FSDirectory;
 
-            FSDirectory dir3 = new FSDirectory("3");
-            FSDirectory dir4 = new FSDirectory("4");
+        Console.WriteLine($"\n\nGet file by path test | Trying to get {@"dir1/dir1.1/file2.exe"}");
+        Console.WriteLine($"Received: {getFileByPathTest.id}");
 
-            fileSystem.MainDirectory.Add(dir1);
-            fileSystem.MainDirectory.Add(dir2);
-            fileSystem.MainDirectory.Add(dir3);
-            fileSystem.MainDirectory.Add(dir4);
+        Console.WriteLine($"\nGet directory by name in directory test | Trying to get {@"dir1.1.2"} from {@"dir1.1"}");
+        Console.WriteLine($"Received: {getDirectoryByNameInDirectory.id}\n\n");
 
-            fileSystem.FindDirectory("2.3");
+        Console.WriteLine($"Trying to remove {@"dir1.1"} from {@"dir1"}");
+        fileSystem.Remove("dir1.1", "dir1");
 
-            // fileSystem.AddDirectory(new List<FSDirectory>()
-            // {
-            // new FSDirectory("dir1"),
-            // new FSDirectory("dir1"),
-            // new FSDirectory("dir2"),
-            // });
-
-            fileSystem.OutputAll();
-        }
+        Console.WriteLine($"File system after removing {@"dir1.1"} from {@"dir1"}\n\n");
+        fileSystem.OutputAll();
     }
 }
